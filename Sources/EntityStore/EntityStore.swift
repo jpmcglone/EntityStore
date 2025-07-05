@@ -38,6 +38,16 @@ public final class EntityStore: ObservableObject {
     return boxes[typeID]?[id] as? EntityBox<T>
   }
 
+  public func filter<T: Identifiable & Equatable & Hashable>(
+    of type: T.Type = T.self,
+    where predicate: (T) -> Bool
+  ) -> [T] {
+    let typeID = ObjectIdentifier(type)
+    return boxes[typeID]?.values
+      .compactMap { ($0 as? EntityBox<T>)?.value }
+      .filter(predicate) ?? []
+  }
+
   public func clear() {
     boxes.removeAll()
   }
