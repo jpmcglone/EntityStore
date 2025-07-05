@@ -25,6 +25,14 @@ public final class EntityStore {
     }
   }
 
+  /// Alias for `entity(for:)`, intended for semantic clarity.
+  /// Use when updating the store with a new or changed model.
+  /// Return value can be ignored safely.
+  @discardableResult
+  public func save<T: Identifiable & Equatable & Hashable>(for model: T) -> EntityBox<T> {
+    entity(for: model)
+  }
+
   public func entity<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> EntityBox<T>? {
     let typeID = ObjectIdentifier(T.self)
     return boxes[typeID]?[id] as? EntityBox<T>
