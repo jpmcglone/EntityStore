@@ -38,8 +38,12 @@ public final class EntityStore: ObservableObject {
     return boxes[typeID]?[id] as? EntityBox<T>
   }
 
+  public func clear() {
+    boxes.removeAll()
+  }
+
   /// Clears the entire store or just the specified type.
-  public func clear<T: Identifiable & Equatable & Hashable>(type: T.Type? = nil) {
+  public func clear<T: Identifiable & Equatable & Hashable>(type: T.Type?) {
     if let type = type {
       let typeID = ObjectIdentifier(type)
       boxes[typeID] = nil
