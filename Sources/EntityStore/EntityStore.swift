@@ -1,10 +1,10 @@
 import SwiftUI
 
 @MainActor
-public final class EntityStore {
+public final class EntityStore: ObservableObject {
   static public let shared = EntityStore()
 
-  private var boxes: [ObjectIdentifier: [AnyHashable: AnyObject]] = [:]
+  @Published private var boxes: [ObjectIdentifier: [AnyHashable: AnyObject]] = [:]
 
   public func entity<T: Identifiable & Equatable & Hashable>(for model: T) -> EntityBox<T> {
     let typeID = ObjectIdentifier(T.self)
@@ -36,5 +36,23 @@ public final class EntityStore {
   public func entity<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> EntityBox<T>? {
     let typeID = ObjectIdentifier(T.self)
     return boxes[typeID]?[id] as? EntityBox<T>
+  }
+
+  /// Clears the entire store or just the specified type.
+  public func clear<T: Identifiable & Equatable & Hashable>(type: T.Type? = nil) {
+    if let type = type {
+      let typeID = ObjectIdentifier(type)
+      boxes[typeID] = nil
+    } else {
+      boxes.removeAll()
+    }
+  }
+
+  public func clear<T: Identifiable & Equatable & Hashable>(id: T.ID, of type: T.Type = T.self) {
+    let typeID = ObjectIdentifier(type)
+    boxes[typeID]?[id] = nil
+    if boxes[typeID]?.isEmpty == true {
+      boxes[typeID] = nil
+    }
   }
 }
