@@ -17,8 +17,11 @@ where T: Identifiable & Equatable & Hashable,
     box
   }
 
-  public init(wrappedValue: T) {
-    let entity = EntityStore.shared.entity(for: wrappedValue)
-    _box = StateObject(wrappedValue: entity)
+  public init(model: T, store: EntityStore = .shared) {
+    if let existingBox = store.entity(for: model.id, as: T.self) {
+      _box = StateObject(wrappedValue: existingBox)
+    } else {
+      _box = StateObject(wrappedValue: EntityBox(model))
+    }
   }
 }

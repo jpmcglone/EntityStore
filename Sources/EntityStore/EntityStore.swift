@@ -57,6 +57,16 @@ public final class EntityStore: ObservableObject {
     return result
   }
 
+  /// Only saves if the object isn't already in the store. Otherwise, it returns what's in the store
+  @discardableResult
+  public func saveIfNew<T: Identifiable & Equatable & Hashable>(_ model: T) -> EntityBox<T> {
+    if let box = entity(for: model.id, as: T.self) {
+      return box
+    } else {
+      return save(model)
+    }
+  }
+
   public func peek<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> T? where T.ID: Sendable {
     return (boxes[ObjectIdentifier(T.self)]?[id] as? EntityBox<T>)?.value
   }
@@ -84,6 +94,14 @@ public final class EntityStore: ObservableObject {
 
   public func entity<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> EntityBox<T>? {
     let typeID = ObjectIdentifier(T.self)
+    return boxes[typeID]?[id] as? EntityBox<T>
+  }
+
+  public func entity<T: Identifiable & Equatable & Hashable>(
+    for id: T.ID,
+    as type: T.Type = T.self
+  ) -> EntityBox<T>? {
+    let typeID = ObjectIdentifier(type)
     return boxes[typeID]?[id] as? EntityBox<T>
   }
 
