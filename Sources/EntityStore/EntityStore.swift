@@ -57,21 +57,21 @@ public final class EntityStore: ObservableObject {
     return result
   }
 
-  public func peek<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> T? {
+  public func peek<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> T? where T.ID: Sendable {
     return (boxes[ObjectIdentifier(T.self)]?[id] as? EntityBox<T>)?.value
   }
 
   public func first<T: Identifiable & Equatable & Hashable>(
     of type: T.Type = T.self,
     where predicate: (T) -> Bool
-  ) -> T? {
+  ) -> T? where T.ID: Sendable {
     let typeID = ObjectIdentifier(type)
     return boxes[typeID]?.values
       .compactMap { ($0 as? EntityBox<T>)?.value }
       .first(where: predicate)
   }
 
-  public func all<T: Identifiable & Equatable & Hashable>(of type: T.Type = T.self) -> [T] {
+  public func all<T: Identifiable & Equatable & Hashable>(of type: T.Type = T.self) -> [T] where T.ID: Sendable {
     let typeID = ObjectIdentifier(type)
     return boxes[typeID]?.values
       .compactMap { ($0 as? EntityBox<T>)?.value } ?? []
@@ -90,7 +90,7 @@ public final class EntityStore: ObservableObject {
   public func filter<T: Identifiable & Equatable & Hashable>(
     of type: T.Type = T.self,
     where predicate: (T) -> Bool
-  ) -> [T] {
+  ) -> [T] where T.ID: Sendable {
     let typeID = ObjectIdentifier(type)
     return boxes[typeID]?.values
       .compactMap { ($0 as? EntityBox<T>)?.value }

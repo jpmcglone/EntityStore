@@ -2,7 +2,10 @@ import SwiftUI
 
 @MainActor
 @propertyWrapper
-public struct Entity<T: Identifiable & Equatable & Hashable>: DynamicProperty {
+public struct Entity<T>: DynamicProperty
+where T: Identifiable & Equatable & Hashable,
+      T.ID: Sendable
+{
   @StateObject private var box: EntityBox<T>
 
   public var wrappedValue: T {
