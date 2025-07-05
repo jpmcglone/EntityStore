@@ -29,7 +29,7 @@ public final class EntityStore {
   /// Use when updating the store with a new or changed model.
   /// Return value can be ignored safely.
   @discardableResult
-  public func save<T: Identifiable & Equatable & Hashable>(for model: T) -> EntityBox<T> {
+  public func save<T: Identifiable & Equatable & Hashable>(_ model: T) -> EntityBox<T> {
     entity(for: model)
   }
 
