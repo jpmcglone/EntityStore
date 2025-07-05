@@ -5,7 +5,7 @@ public final class EntityBox<T: Identifiable & Equatable & Hashable>: Observable
 
     @Published public var value: T
 
-    public init(_ value: T) {
+    init(_ value: T) {
         self.value = value
     }
 }
