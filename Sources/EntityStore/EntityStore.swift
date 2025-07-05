@@ -11,9 +11,7 @@ public final class EntityStore: ObservableObject {
     let id = model.id
 
     if let box = boxes[typeID]?[id] as? EntityBox<T> {
-      DispatchQueue.main.async {
-        box.value = model // update value if it changed
-      }
+      box.updateIfNeeded(to: model)
       return box
     } else {
       let box = EntityBox(model)
@@ -31,6 +29,57 @@ public final class EntityStore: ObservableObject {
   @discardableResult
   public func save<T: Identifiable & Equatable & Hashable>(_ model: T) -> EntityBox<T> {
     entity(for: model)
+  }
+
+  @discardableResult
+  public func save<T: Identifiable & Equatable & Hashable>(_ models: [T]) -> [EntityBox<T>] {
+    guard !models.isEmpty else { return [] }
+
+    let typeID = ObjectIdentifier(T.self)
+    if boxes[typeID] == nil {
+      boxes[typeID] = [:]
+    }
+
+    var result: [EntityBox<T>] = []
+    for model in models {
+      let id = model.id
+
+      if let box = boxes[typeID]?[id] as? EntityBox<T> {
+        box.updateIfNeeded(to: model)
+        result.append(box)
+      } else {
+        let box = EntityBox(model)
+        boxes[typeID]?[id] = box
+        result.append(box)
+      }
+    }
+
+    return result
+  }
+
+  public func peek<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> T? {
+    return (boxes[ObjectIdentifier(T.self)]?[id] as? EntityBox<T>)?.value
+  }
+
+  public func first<T: Identifiable & Equatable & Hashable>(
+    of type: T.Type = T.self,
+    where predicate: (T) -> Bool
+  ) -> T? {
+    let typeID = ObjectIdentifier(type)
+    return boxes[typeID]?.values
+      .compactMap { ($0 as? EntityBox<T>)?.value }
+      .first(where: predicate)
+  }
+
+  public func all<T: Identifiable & Equatable & Hashable>(of type: T.Type = T.self) -> [T] {
+    let typeID = ObjectIdentifier(type)
+    return boxes[typeID]?.values
+      .compactMap { ($0 as? EntityBox<T>)?.value } ?? []
+  }
+
+  public func contains<T: Identifiable & Hashable>(_ id: T.ID, of type: T.Type = T.self) -> Bool {
+    let typeID = ObjectIdentifier(type)
+    return boxes[typeID]?[id] != nil
   }
 
   public func entity<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> EntityBox<T>? {

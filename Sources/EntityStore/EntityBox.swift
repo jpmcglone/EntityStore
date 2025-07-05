@@ -9,3 +9,10 @@ public final class EntityBox<T: Identifiable & Equatable & Hashable>: Observable
         self.value = value
     }
 }
+
+extension EntityBox {
+  func updateIfNeeded(to newValue: T) {
+    guard value != newValue else { return }
+    value = newValue
+  }
+}
