@@ -11,7 +11,9 @@ public final class EntityStore {
     let id = model.id
 
     if let box = boxes[typeID]?[id] as? EntityBox<T> {
-      box.value = model // update value if it changed
+      DispatchQueue.main.async {
+        box.value = model // update value if it changed
+      }
       return box
     } else {
       let box = EntityBox(model)
