@@ -1,7 +1,5 @@
 import SwiftUI
 
-import SwiftUI
-
 @MainActor
 @propertyWrapper
 public struct Entity<T>: DynamicProperty
@@ -19,7 +17,14 @@ where T: Identifiable & Equatable & Hashable,
     box
   }
 
+  /// Explicit init
   public init(_ model: T, store: EntityStore = .shared) {
     self.box = store.entity(for: model)
   }
+
+  /// Enables SwiftUI-style syntax with optional store
+  public init(wrappedValue model: T, store: EntityStore? = nil) {
+    self.init(model, store: store ?? .shared)
+  }
 }
+
