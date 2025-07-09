@@ -16,9 +16,6 @@ where T.ID: Sendable {
 extension EntityBox {
   func updateIfNeeded(to newValue: T) {
     guard value != newValue else { return }
-
-    Task { @MainActor in
-      value = newValue
-    }
+    value = newValue
   }
 }
