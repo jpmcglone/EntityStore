@@ -3,15 +3,17 @@ import SwiftUI
 @MainActor
 public final class EntityStore: ObservableObject {
   static public let shared = EntityStore()
-
+  
   @Published private var boxes: [ObjectIdentifier: [AnyHashable: AnyObject]] = [:]
-
-  public func entity<T: Identifiable & Equatable & Hashable>(for model: T) -> EntityBox<T> {
+  
+  public func entity<T: Identifiable & Equatable & Hashable>(for model: T, overwrite: Bool = true) -> EntityBox<T> {
     let typeID = ObjectIdentifier(T.self)
     let id = model.id
-
+    
     if let box = boxes[typeID]?[id] as? EntityBox<T> {
-      box.updateIfNeeded(to: model)
+      if overwrite {
+        box.updateIfNeeded(to: model)
+      }
       return box
     } else {
       let box = EntityBox(model)
@@ -22,28 +24,28 @@ public final class EntityStore: ObservableObject {
       return box
     }
   }
-
+  
   /// Alias for `entity(for:)`, intended for semantic clarity.
   /// Use when updating the store with a new or changed model.
   /// Return value can be ignored safely.
   @discardableResult
   public func save<T: Identifiable & Equatable & Hashable>(_ model: T) -> EntityBox<T> {
-    entity(for: model)
+    entity(for: model, overwrite: true)
   }
-
+  
   @discardableResult
   public func save<T: Identifiable & Equatable & Hashable>(_ models: [T]) -> [EntityBox<T>] {
     guard !models.isEmpty else { return [] }
-
+    
     let typeID = ObjectIdentifier(T.self)
     if boxes[typeID] == nil {
       boxes[typeID] = [:]
     }
-
+    
     var result: [EntityBox<T>] = []
     for model in models {
       let id = model.id
-
+      
       if let box = boxes[typeID]?[id] as? EntityBox<T> {
         box.updateIfNeeded(to: model)
         result.append(box)
@@ -53,24 +55,14 @@ public final class EntityStore: ObservableObject {
         result.append(box)
       }
     }
-
+    
     return result
   }
-
-  /// Only saves if the object isn't already in the store. Otherwise, it returns what's in the store
-  @discardableResult
-  public func saveIfNew<T: Identifiable & Equatable & Hashable>(_ model: T) -> EntityBox<T> {
-    if let box = entity(for: model.id, as: T.self) {
-      return box
-    } else {
-      return save(model)
-    }
-  }
-
+  
   public func peek<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> T? where T.ID: Sendable {
     return (boxes[ObjectIdentifier(T.self)]?[id] as? EntityBox<T>)?.value
   }
-
+  
   public func first<T: Identifiable & Equatable & Hashable>(
     of type: T.Type = T.self,
     where predicate: (T) -> Bool
@@ -80,23 +72,23 @@ public final class EntityStore: ObservableObject {
       .compactMap { ($0 as? EntityBox<T>)?.value }
       .first(where: predicate)
   }
-
+  
   public func all<T: Identifiable & Equatable & Hashable>(of type: T.Type = T.self) -> [T] where T.ID: Sendable {
     let typeID = ObjectIdentifier(type)
     return boxes[typeID]?.values
       .compactMap { ($0 as? EntityBox<T>)?.value } ?? []
   }
-
+  
   public func contains<T: Identifiable & Hashable>(_ id: T.ID, of type: T.Type = T.self) -> Bool {
     let typeID = ObjectIdentifier(type)
     return boxes[typeID]?[id] != nil
   }
-
+  
   public func entity<T: Identifiable & Equatable & Hashable>(for id: T.ID) -> EntityBox<T>? {
     let typeID = ObjectIdentifier(T.self)
     return boxes[typeID]?[id] as? EntityBox<T>
   }
-
+  
   public func entity<T: Identifiable & Equatable & Hashable>(
     for id: T.ID,
     as type: T.Type = T.self
@@ -104,7 +96,7 @@ public final class EntityStore: ObservableObject {
     let typeID = ObjectIdentifier(type)
     return boxes[typeID]?[id] as? EntityBox<T>
   }
-
+  
   public func filter<T: Identifiable & Equatable & Hashable>(
     of type: T.Type = T.self,
     where predicate: (T) -> Bool
@@ -114,11 +106,11 @@ public final class EntityStore: ObservableObject {
       .compactMap { ($0 as? EntityBox<T>)?.value }
       .filter(predicate) ?? []
   }
-
+  
   public func clear() {
     boxes.removeAll()
   }
-
+  
   /// Clears the entire store or just the specified type.
   public func clear<T: Identifiable & Equatable & Hashable>(type: T.Type?) {
     if let type = type {
@@ -128,7 +120,7 @@ public final class EntityStore: ObservableObject {
       boxes.removeAll()
     }
   }
-
+  
   public func clear<T: Identifiable & Equatable & Hashable>(id: T.ID, of type: T.Type = T.self) {
     let typeID = ObjectIdentifier(type)
     boxes[typeID]?[id] = nil

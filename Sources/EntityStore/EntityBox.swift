@@ -4,9 +4,9 @@ import SwiftUI
 public final class EntityBox<T: Identifiable & Equatable & Hashable>: ObservableObject, Identifiable
 where T.ID: Sendable {
   public let id: T.ID
-
+  
   @Published public var value: T
-
+  
   init(_ value: T) {
     self.value = value
     self.id = value.id
