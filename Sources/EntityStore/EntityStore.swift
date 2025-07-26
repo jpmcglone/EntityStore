@@ -3,6 +3,8 @@ import SwiftUI
 @MainActor
 public final class EntityStore: ObservableObject {
   static public let shared = EntityStore()
+
+  public init() { }
   
   @Published private var boxes: [ObjectIdentifier: [AnyHashable: AnyObject]] = [:]
   
